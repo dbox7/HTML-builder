@@ -1,19 +1,34 @@
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
+const { exit } = require('process');
 const { stdin, stdout } = process;
 
-function writeFile(data) {
+let txt = '';
+console.log('Enter text');
+
+function wf(data) {
     fs.writeFile(
         path.join(__dirname, 'text.txt'), 
         data,
         (err) => {
             if (err) throw err;
-            console.log('Файл был создан');
     });
 }
 
-stdout.write('Enter text\n');
-stdin.on('data', data => {
-    writeFile(data);
-    //process.exit();
+const rl = readline.createInterface({ 
+    input: process.stdin,
+    output: process.stdout
+});
+
+rl.on('line', input => {
+    if (input.toString().trim() == 'exit') {
+        rl.close();
+    };
+    txt += input + '\n';
+    wf(txt);
+});
+
+rl.on('close', () => {
+    console.log('Bye');
 });
