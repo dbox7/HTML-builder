@@ -33,34 +33,77 @@ async function getData(chunk) {
   return data += chunk;
 };
 
-fs.mkdir(path.join(__dirname, 'project-dist'), (err) => {});
-fs.mkdir(path.join(__dirname, 'project-dist', 'assets'), (err) => {});
-fs.mkdir(path.join(__dirname, 'project-dist', 'assets', 'fonts'), (err) => {});
-fs.mkdir(path.join(__dirname, 'project-dist', 'assets', 'img'), (err) => {});
-fs.mkdir(path.join(__dirname, 'project-dist', 'assets', 'svg'), (err) => {});
 
-fs.readdir(
-  path.join(__dirname, 'assets'), 
-  (err, folders) => {
-    folders.forEach(folder => {
-      fs.readdir(
-        path.join(__dirname, 'assets', folder), 
-        (err, files) => {
-          files.forEach(file => {
-            fs.copyFile(
-              path.join(__dirname, 'assets', folder, file), 
-              path.join(__dirname, 'project-dist', 'assets', folder, file), 
-              err => err,
-            );
-          });
-        }
+fs.mkdir(path.join(__dirname, 'project-dist', 'assets'), { recursive: true }, (err) => {});
+//fs.mkdir(path.join(__dirname, 'project-dist'), (err) => {});
+
+async function copyFiles() {
+  const folders = await fs.promises.readdir(path.join(__dirname, 'assets'));
+  folders.forEach(async folder => {
+    const files = await fs.promises.readdir(path.join(__dirname, 'assets', folder));
+    files.forEach(file => {
+      fs.copyFile(
+        path.join(__dirname, 'assets', folder, file), 
+        path.join(__dirname, 'project-dist', 'assets', folder, file), 
+        err => err,
       );
     })
-  }
-);
+  })
+}
+
+async function copyAssets() {
+  fs.access(path.join(__dirname, 'project-dist', 'assets'), async error => {
+    if (error) {
+      //fs.mkdir(path.join(__dirname, 'project-dist', 'assets'), { recursive: true }, (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'fonts'), { recursive: true }, (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'img'), (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'svg'), (err) => {});
+      copyFiles();
+    } else {
+      await fs.promises.rm(path.join(__dirname, 'project-dist', 'assets'), { recursive: true }, err => {console.log(err)});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets'), { recursive: true }, (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'fonts'), { recursive: true }, (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'img'), (err) => {});
+      await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'svg'), (err) => {});
+      copyFiles();
+    }
+  })
+
+  // const hasAssets = await fs.promises.access(path.join(__dirname, 'project-dist', 'assets'))
+  // console.log(hasAssets)
+  // if (hasAssets === 'undefined') {
+  //   console.log(hasAssets)
+  //   await fs.promises.rm(path.join(__dirname, 'project-dist', 'assets'), { recursive: true }, err => {console.log(err)});
+  // }
+  // await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'fonts'), { recursive: true }, (err) => {});
+  // await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'img'), (err) => {});
+  // await fs.promises.mkdir(path.join(__dirname, 'project-dist', 'assets', 'svg'), (err) => {});
+  // copyFiles()
+  return true;
+}
+
+// fs.readdir(
+//   path.join(__dirname, 'assets'), 
+//   (err, folders) => {
+//     console.log(path.join(__dirname, 'assets'))
+//     folders.forEach(async folder => {
+//       const files = await fs.promises.readdir(path.join(__dirname, 'assets', folder))
+//       console.log(files)
+//       files.forEach(file => {
+//         fs.copyFile(
+//           path.join(__dirname, 'assets', folder, file), 
+//           path.join(__dirname, 'project-dist', 'assets', folder, file), 
+//           err => err,
+//         );
+//       })
+//     })
+//   }
+// );
 
 read.on('data', async chunk => {
   data = await getData(chunk);
+  const copyDone = await copyAssets();
+  if (copyDone) console.log('yes')
   fs.writeFile(
     path.join(__dirname, 'project-dist', 'index.html'),
     data,
@@ -96,5 +139,3 @@ fs.readdir(
     });
   }
 );
-
-read.on('error', error => console.log('Error', error.message));
