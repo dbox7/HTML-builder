@@ -9,17 +9,14 @@ fs.readdir(
   (err, files) => {
     files = files.filter(file => {
       const type = path.extname(file.name);
-      console.log(type);
       if (file.isFile() && type === '.css') {
         return file;
       }
     });
     files.forEach(file => {
-      console.log(file.name);
       const read = fs.createReadStream(path.join(__dirname, 'styles', file.name));
       read.on('data', chunk => {
         data += chunk;
-        //console.log(data);
       });
       read.on('end', () => {
         fs.writeFile(path.join(__dirname, 'project-dist', 'bundle.css'), data, (err) => {

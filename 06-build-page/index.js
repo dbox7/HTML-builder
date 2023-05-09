@@ -88,7 +88,7 @@ fs.readdir(
         data += chunk;
       });
       read.on('end', () => {
-        fs.writeFile(path.join(__dirname, 'project-dist', 'bundle.css'), data, (err) => {
+        fs.writeFile(path.join(__dirname, 'project-dist', 'style.css'), data, (err) => {
           if (err) throw err;
         });
       });

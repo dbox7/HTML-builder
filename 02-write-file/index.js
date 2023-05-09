@@ -22,9 +22,10 @@ const rl = readline.createInterface({
 rl.on('line', input => {
   if (input.toString().trim() == 'exit') {
     rl.close();
+  } else {
+    txt += input + '\n';
+    wf(txt);
   }
-  txt += input + '\n';
-  wf(txt);
 });
 
 rl.on('close', () => {
